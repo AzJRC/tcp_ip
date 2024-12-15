@@ -2,19 +2,59 @@
 #include "client.h"
 
 
-#define PORT 80
-
-
 // ./client {host} -> stdout(Header information)
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[]) {	
 	
-	if (argc < 2) {
-		fprintf(stderr, "Usage: ./client {host}");
+//	if (argc < 2) {
+//		fprintf(stderr, "Usage: ./client {host}");
+//		return -1;
+//	};
+	
+	// variables
+	int opt;
+	int version_ip;
+	char *host_ip;
+	
+	// default values
+	version_ip = 4;
+	
+	// arg parser
+	// Man pages get_opt(3): An element of argv that starts with '-' (and is not exactly "-" or "--") is  an  option  element.
+	if (argc == 1) {
+		fprintf(stderr, "Usage: %s [-v ip_version] -h ip\n", argv[0]);
 		return -1;
-	};
-	const char *host_ip = argv[1];
+	}
+	while ((opt = getopt(argc, argv, "v::h:")) != -1) {
+		switch(opt) {
+			case 'v':
+				if (optarg == NULL) break;
+				version_ip = atoi(optarg);
+				break;
+			case 'h':
+				host_ip = optarg;
+				break;
+			default:
+				fprintf(stderr, "Usage: %s [-v ip_version] -h {ip}\n", argv[0]);
+				return -1;
+		}
+	}
+	if (version_ip != 4 && version_ip != 6) {
+		fprintf(stderr, "Invalid IP version: Supported values are 4 and 6.\n");
+		return -1;
+	}
+	if (!host_ip) {
+		fprintf(stderr, "Missing Host IP after -h.\n");
+		return -1;
+	}
+
+	// tmp until -v 6 is implemented
+	if (version_ip == 6) {
+		fprintf(stdout, "TCP v6 client not implemented yet");
+		return 0;
+	}
 
 	const int v4_domain = AF_INET;
+	const int v6_domain = AF_INET6;
 	const int tcp_sock = SOCK_STREAM;
 	const int proto = 0;
 	

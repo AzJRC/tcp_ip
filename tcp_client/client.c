@@ -5,20 +5,19 @@
 // ./client {host} -> stdout(Header information)
 int main(int argc, char *argv[]) {	
 		
-	// variables
-	int version_ip;
-	char *host_ip;
-		
-	// default values
-	version_ip = DEF_VER_IP;
+	AppArgs app_args;	
 	
 	// argument parser
-	if (parse_arguments(argc, argv, &version_ip, &host_ip) == -1) {
+	if (parse_arguments(argc, argv, &app_args) == -1) {
 		return -1;
 	}
 
+	//variables
+	int *version_ip = &app_args.version_ip;
+	char **host_ip = &app_args.host_ip;
+
 	// tmp until -v 6 is implemented
-	if (version_ip == 6) {
+	if (*version_ip == 6) {
 		fprintf(stdout, "TCP v6 client not implemented yet");
 		return 0;
 	}
@@ -27,13 +26,13 @@ int main(int argc, char *argv[]) {
 	
 
 	// Create socket for endpoint commnunication
-	int sfd = create_socket(version_ip);
+	int sfd = create_socket(*version_ip);
 	if (sfd == -1) {
 		return handle_errors("socket", errno);
 	}
 
 	// Connect to the socket		
-	if (connect_to_host(sfd, host_ip, version_ip) == -1) { 
+	if (connect_to_host(sfd, *host_ip, *version_ip) == -1) { 
 		close(sfd);
 		return handle_errors("connect", errno);
 	}

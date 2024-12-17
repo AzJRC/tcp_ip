@@ -12,14 +12,21 @@
 
 
 // Definitions
-#define PORT 80
+#define PORT 8081
 #define DEF_VER_IP 4
 #define BUFF_SIZE 512
 #define HTTP_REQ "HEAD / HTTP/1.0\r\n\r\n"
 
+struct app_args {
+	int version_ip;
+	char *host_ip;
+	int dport;
+};
+
+typedef struct app_args AppArgs;
 
 // function prototypes
-int parse_arguments(int argc, char *argv[], int *version_ip, char *host_ip[]);
+int parse_arguments(int argc, char *argv[], AppArgs *app_args);
 int create_socket(int version_ip);
 int _create_v4_socket();
 int _create_v6_socket();
@@ -31,20 +38,34 @@ int send_request(int sfd, const char *req);
 int recv_response(int sfd, char *buff, size_t buff_size);
 
 
-int parse_arguments(int argc, char *argv[], int *version_ip, char *host_ip[]) {
-		int opt;
+int parse_arguments(int argc, char *argv[], AppArgs *app_args) {
 		if (argc == 1) {
 				fprintf(stderr, "Usage: %s [-v ip_version] -h ip\n", argv[0]);
 				return -1;	
 		}
-		while ((opt = getopt(argc, argv, "v::h:")) != -1) {
+
+		app_args->version_ip = DEF_VER_IP;
+		app_args->host_ip = NULL;
+		app_args->dport = 80;
+
+		//variables
+		int *version_ip = &app_args->version_ip;
+		char **host_ip = &app_args->host_ip;
+		int *dport = &app_args->dport;
+
+		int opt;
+		while ((opt = getopt(argc, argv, "v::p::h:")) != -1) {
 			switch(opt) {
+				case 'h':
+					*host_ip = optarg;
+					break;
+				case 'p':
+					if (optarg == NULL) break;
+					*dport = atoi(optarg);
+					break;
 				case 'v':
 					if (optarg == NULL) break;
 					*version_ip = atoi(optarg);
-					break;
-				case 'h':
-					*host_ip = optarg;
 					break;
 				default:
 					fprintf(stderr, "Usage: %s [-v ip_version] -h {ip}\n", argv[0]);
@@ -53,10 +74,6 @@ int parse_arguments(int argc, char *argv[], int *version_ip, char *host_ip[]) {
 		}
 		if (*version_ip != 4 && *version_ip != 6) {
 			fprintf(stderr, "Invalid IP version: %i. Supported values are 4 and 6.\n", *version_ip);
-			return -1;
-		}
-		if (*host_ip == NULL) {
-			fprintf(stderr, "Missing Host IP after -h.\n");
 			return -1;
 		}
 

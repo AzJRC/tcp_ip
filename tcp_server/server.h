@@ -17,19 +17,25 @@
 #define MAX_CONN 3
 #define BUFF_SIZE 512
 
+struct app_args {
+	int version_ip;
+	int lport;
+};
+typedef struct app_args AppArgs;
 
 // function prototypes
-int parse_arguments(int argc, char *argv[], int *version_ip, int *lport);
+int parse_arguments(int argc, char *argv[], AppArgs *app_args);
 int create_socket(int version_ip);
 int _create_v4_socket();
 int _create_v6_socket();
 int handle_errors(const char *err_fuct, int errno_code);
 
 
-int parse_arguments(int argc, char *argv[], int *version_ip, int *lport) {
+int parse_arguments(int argc, char *argv[], AppArgs *app_args) {
+
 		// Clean memory spaces of arguments
-		memset(version_ip, 0, sizeof(*version_ip));
-		memset(lport, 0, sizeof(*lport));
+		app_args->version_ip = 0;
+		app_args->lport = 0;
 
 		// prrocess arguments with parser
 		int opt;
@@ -37,7 +43,7 @@ int parse_arguments(int argc, char *argv[], int *version_ip, int *lport) {
 			switch(opt) {
 				case 'v':
 					if (optarg == NULL) break;
-					*version_ip = atoi(optarg);
+					app_args -> version_ip = atoi(optarg);
 					break;
 				case 'p':
 					if (optarg == NULL) break;
@@ -45,7 +51,7 @@ int parse_arguments(int argc, char *argv[], int *version_ip, int *lport) {
 						fprintf(stderr, "Listening port must be a number higher than 1023.");
 						return -1;
 					}
-					*lport = atoi(optarg);
+					app_args -> lport = atoi(optarg);
 					break;
 				default:
 					fprintf(stderr, "Usage: %s [-v ip_version] [-p port]\n", argv[0]);
@@ -53,11 +59,11 @@ int parse_arguments(int argc, char *argv[], int *version_ip, int *lport) {
 			}
 		}
 		
-		if (*version_ip == 0) {
-			*version_ip = DEF_VER_IP;
+		if (app_args->version_ip == 0) {
+			app_args->version_ip = DEF_VER_IP;
 		}
-		if (*lport == 0) {
-			*lport = DEF_LISTEN_PORT;
+		if (app_args->lport == 0) {
+			app_args->lport = DEF_LISTEN_PORT;
 		}
 		return 0;
 }
